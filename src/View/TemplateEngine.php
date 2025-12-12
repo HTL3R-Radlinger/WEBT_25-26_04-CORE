@@ -2,70 +2,84 @@
 
 namespace Radlinger\Mealplan\View;
 
-use function PHPUnit\Framework\equalToCanonicalizing;
-
 class TemplateEngine
 {
     public static function render(string $templatePath, array $data): string
     {
-        $content = file_get_contents($templatePath);
-        return self::renderContent($content, $data);
-    }
+        $output = file_get_contents($templatePath);
 
-    private static function renderContent(string $content, array $data): string
-    {
-        print_r($data);
-        $parsed = self::parseWithStack($content, $data);
-//        echo $parsed;
-//        return self::replaceVars($parsed, $data);
-        return "";
-    }
+        // MAIN LOOPS
+        if (preg_match_all('/\{% for (\w+) in (\w+) %}(.*?)\{% endfor %}/s', $output, $matches, PREG_SET_ORDER)) {
 
-    /**
-     * Stack-basierter Parser für verschachtelte for-Schleifen.
-     */
-    private static function parseWithStack(string $content, array $data): string
-    {
-        $tokens = self::tokenize($content);
-        echo "START\n#########\n";
-        print_r($tokens);
-        echo "END\n#########\n";
-        $stack = [];
-        $output = '';
+            foreach ($matches as $match) {
 
-        foreach ($tokens as $token) {
-            if ($token['type'] === 'for_open') {
-                $stack[] = [
-                    'var' => $token['var'],
-                    'array' => $token['array'],
-                    'inner' => ''
-                ];
-                continue;
-            }
+                [$fullMatch, $itemVar, $arrayVar, $loopContent] = $match;
 
-            if ($token['type'] === 'for_close') {
-                $loop = array_pop($stack);
-                $rendered = '';
+                $replacement = '';
 
-                $arr = $data[$loop['array']] ?? [];
-                if (!is_array($arr)) {
-                    $arr = [];
-                }
+                // ARRAY MUSS IM DATENWURZEL-BEREICH LIEGEN
+                if (isset($data[$arrayVar]) && is_array($data[$arrayVar])) {
 
-                foreach ($arr as $item) {
-                    $scope = is_array($item)
-                        ? array_merge($data, $item)
-                        : array_merge($data, [$loop['var'] => $item]);
+                    foreach ($data[$arrayVar] as $item) {
 
-                    $renderedBlock = self::replaceVars($loop['inner'], $scope);
-                    $renderedBlock = self::parseWithStack($renderedBlock, $scope);
-                    $rendered .= $renderedBlock;
-                }
+                        $renderedItemBlock = $loopContent;
 
-                if (empty($stack)) {
-                    $output .= $rendered;
-                } else {
-                    $stack[count($stack) - 1]['inner'] .= $rendered;
+                        // Hauptloop Variablen
+                        $vars = is_object($item) ? get_object_vars($item) : (array)$item;
+
+                        foreach ($vars as $key => $value) {
+                            if (!is_array($value) && !is_object($value)) {
+                                $renderedItemBlock =
+                                    str_replace('{{' . $key . '}}', $value, $renderedItemBlock);
+                            }
+                        }
+
+                        // ------------------------------------------
+                        // SUBLOOPS DIREKT HIER VERARBEITEN
+                        // ------------------------------------------
+                        if (preg_match_all(
+                            '/\{% subFor (\w+) in (\w+) %}(.*?)\{% endSubFor %}/s',
+                            $renderedItemBlock,
+                            $subMatches,
+                            PREG_SET_ORDER
+                        )) {
+
+                            foreach ($subMatches as $subMatch) {
+
+                                [$fullSub, $subItemVar, $subArrayVar, $subBlock] = $subMatch;
+
+                                $subReplacement = '';
+
+                                // WICHTIG: subLoops greifen NICHT auf $data zu,
+                                //         sondern auf die VARS des aktuellen Plans!!!
+                                if (isset($vars[$subArrayVar]) && is_array($vars[$subArrayVar])) {
+
+                                    foreach ($vars[$subArrayVar] as $subItem) {
+
+                                        $subBlockRendered = $subBlock;
+
+                                        $subVars = is_object($subItem)
+                                            ? get_object_vars($subItem)
+                                            : (array)$subItem;
+                                        foreach ($subVars as $sk => $sv) {
+                                            if (!is_array($sv) && !is_object($sv)) {
+                                                $subBlockRendered =
+                                                    str_replace('{{' . $sk . '}}', $sv, $subBlockRendered);
+                                            }
+                                        }
+
+                                        $subReplacement .= $subBlockRendered;
+                                    }
+                                }
+
+                                // Ganzes Subloop-Element ersetzen
+                                $renderedItemBlock =
+                                    str_replace($fullSub, $subReplacement, $renderedItemBlock);
+                            }
+                        }
+
+                        $replacement .= $renderedItemBlock;
+                    }
                 }
                 continue;
             }
@@ -80,28 +94,10 @@ class TemplateEngine
             }
         }
 
-        return $output;
-    }
-
-    /** Tokenizer: zerlegt das Template in Text + For-Tags */
-    private static function tokenize(string $content): array
-    {
-        $pattern = '/(\{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%\}|\{%\s*endfor\s*%\})/';
-        $parts = preg_split($pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
-
-        $tokens = [];
-        for ($i = 0; $i < count($parts); $i++) {
-            $part = $parts[$i];
-            if ($part === '') continue;
-
-            if (preg_match('/^\{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%\}$/', $part, $m)) {
-                $tokens[] = ['type' => 'for_open', 'var' => $m[1], 'array' => $m[2]];
-                continue;
-            }
-
-            if (preg_match('/^\{%\s*endfor\s*%\}$/', $part)) {
-                $tokens[] = ['type' => 'for_close'];
-                continue;
+        // SIMPLE VARS (root-level)
+        foreach ($data as $key => $value) {
+            if (!is_array($value)) {
+                $output = str_replace('{{' . $key . '}}', $value, $output);
             }
 
             $tokens[] = ['type' => 'text', 'value' => $part];

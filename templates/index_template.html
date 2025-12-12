@@ -18,14 +18,14 @@
 
     <h3>Meals:</h3>
     <ul>
-        {% for meal in meals %}
+        {% subFor meal in plan_meals %}
         <li class="meal">
             <h2>{{name}}</h2>
-            <p><strong>Allergens:</strong> {{allergens}}</p>
+            <p><strong>Ingredients:</strong> {{allergens}}</p>
             <p><strong>Calories:</strong> {{nutritionalInfo}}</p>
             <p><strong>Price:</strong> {{price}}</p>
         </li>
-        {% endfor %}
+        {% endSubFor %}
     </ul>
 </div>
 {% endfor %}

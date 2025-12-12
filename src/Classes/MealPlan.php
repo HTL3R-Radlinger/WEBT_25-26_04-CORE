@@ -2,12 +2,10 @@
 
 namespace Radlinger\Mealplan\Classes;
 
-use JsonSerializable;
-
-class MealPlan implements JsonSerializable
+class MealPlan
 {
     public int $id;
-    public string $planName;
+    public string $name;
     public string $schoolName;
     public string $weekOfDelivery;
     public array $meals;
@@ -25,42 +23,5 @@ class MealPlan implements JsonSerializable
         $this->schoolName = $schoolName;
         $this->weekOfDelivery = $weekOfDelivery;
         $this->meals = $meals;
-    }
-
-    // Getter
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getPlanName(): string
-    {
-        return $this->planName;
-    }
-
-    public function getSchoolName(): string
-    {
-        return $this->schoolName;
-    }
-
-    public function getWeekOfDelivery(): string
-    {
-        return $this->weekOfDelivery;
-    }
-
-    public function getMeals(): array
-    {
-        return $this->meals;
-    }
-
-    public function jsonSerialize(): array
-    {
-        return [
-            "id" => $this->getId(),
-            "name" => $this->getPlanName(),
-            "schoolName" => $this->getSchoolName(),
-            "weekOfDelivery" => $this->getWeekOfDelivery(),
-            "meals" => $this->getMeals(),
-        ];
     }
 }

@@ -10,14 +10,14 @@ $mealPlans = MealSeeder::generate();
 // Prepare structured data for template
 $data = [
     'plans' => [],
-    'title' => 'Temp!!!!!!!!'
+    'title' => "Test!!!"
 ];
 foreach ($mealPlans as $plan) {
-    $data['plans'][] = [
-        'plan_name' => $plan->getPlanName(),
-        'school_name' => $plan->getSchoolName(),
-        'week_of_delivery' => $plan->getWeekOfDelivery(),
-        'plan_meals' => $plan->getMeals()
+    $data['plans'][] = (object)[
+        'plan_name' => $plan->name,
+        'school_name' => $plan->schoolName,
+        'week_of_delivery' => $plan->weekOfDelivery,
+        'plan_meals' => $plan->meals
     ];
 }
 
