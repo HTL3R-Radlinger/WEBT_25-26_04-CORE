@@ -8,64 +8,88 @@ class TemplateEngine
     {
         $output = file_get_contents($templatePath);
 
-        // 1) Normal Loops
-        $output = self::processLoop($output, $data, 'for', 'endfor');
-//        return $output;
-        // 2) Sub Loops
-        $output = self::processLoop($output, $data, 'subfor', 'endsubfor');
-
-        // 3) Simple vars
-        foreach ($data as $key => $value) {
-            if (!is_array($value)) {
-                $output = str_replace('{{' . $key . '}}', $value, $output);
-            }
-        }
-
-        return $output;
-    }
-
-    private static function processLoop(string $output, array $data, string $openTag, string $closeTag): string
-    {
-        // Regex dynamisch
-        $pattern = sprintf(
-            '/\{%%\s*%s\s+(\w+)\s+in\s+(\w+)\s*%%}(.*?)\{%%\s*%s\s*%%}/s',
-            $openTag,
-            $closeTag
-        );
-//        exit(1);
-
-        // Solange Schleifen existieren
-        while (preg_match_all($pattern, $output, $matches, PREG_SET_ORDER)) {
+        // MAIN LOOPS
+        if (preg_match_all('/\{% for (\w+) in (\w+) %}(.*?)\{% endfor %}/s', $output, $matches, PREG_SET_ORDER)) {
 
             foreach ($matches as $match) {
 
-                [$full, $itemVar, $arrayVar, $block] = $match;
-                echo $arrayVar;
+                [$fullMatch, $itemVar, $arrayVar, $loopContent] = $match;
 
                 $replacement = '';
 
-                // Prüfen, ob Array existiert
+                // ARRAY MUSS IM DATENWURZEL-BEREICH LIEGEN
                 if (isset($data[$arrayVar]) && is_array($data[$arrayVar])) {
+
                     foreach ($data[$arrayVar] as $item) {
 
-                        $renderedBlock = $block;
+                        $renderedItemBlock = $loopContent;
 
-                        // Nur Objekte oder Arrays unterstützen
-                        $vars = is_object($item)
-                            ? get_object_vars($item)
-                            : (array)$item;
+                        // Hauptloop Variablen
+                        $vars = is_object($item) ? get_object_vars($item) : (array)$item;
 
-                        foreach ($vars as $k => $v) {
-                            if (!is_array($v) && !is_object($v)) {
-                                $renderedBlock = str_replace('{{' . $k . '}}', $v, $renderedBlock);
+                        foreach ($vars as $key => $value) {
+                            if (!is_array($value) && !is_object($value)) {
+                                $renderedItemBlock =
+                                    str_replace('{{' . $key . '}}', $value, $renderedItemBlock);
                             }
                         }
 
-                        $replacement .= $renderedBlock;
+                        // ------------------------------------------
+                        // SUBLOOPS DIREKT HIER VERARBEITEN
+                        // ------------------------------------------
+                        if (preg_match_all(
+                            '/\{% subFor (\w+) in (\w+) %}(.*?)\{% endSubFor %}/s',
+                            $renderedItemBlock,
+                            $subMatches,
+                            PREG_SET_ORDER
+                        )) {
+
+                            foreach ($subMatches as $subMatch) {
+
+                                [$fullSub, $subItemVar, $subArrayVar, $subBlock] = $subMatch;
+
+                                $subReplacement = '';
+
+                                // WICHTIG: subLoops greifen NICHT auf $data zu,
+                                //         sondern auf die VARS des aktuellen Plans!!!
+                                if (isset($vars[$subArrayVar]) && is_array($vars[$subArrayVar])) {
+
+                                    foreach ($vars[$subArrayVar] as $subItem) {
+
+                                        $subBlockRendered = $subBlock;
+
+                                        $subVars = is_object($subItem)
+                                            ? get_object_vars($subItem)
+                                            : (array)$subItem;
+                                        foreach ($subVars as $sk => $sv) {
+                                            if (!is_array($sv) && !is_object($sv)) {
+                                                $subBlockRendered =
+                                                    str_replace('{{' . $sk . '}}', $sv, $subBlockRendered);
+                                            }
+                                        }
+
+                                        $subReplacement .= $subBlockRendered;
+                                    }
+                                }
+
+                                // Ganzes Subloop-Element ersetzen
+                                $renderedItemBlock =
+                                    str_replace($fullSub, $subReplacement, $renderedItemBlock);
+                            }
+                        }
+
+                        $replacement .= $renderedItemBlock;
                     }
                 }
 
-                $output = str_replace($full, $replacement, $output);
+                $output = str_replace($fullMatch, $replacement, $output);
+            }
+        }
+
+        // SIMPLE VARS (root-level)
+        foreach ($data as $key => $value) {
+            if (!is_array($value)) {
+                $output = str_replace('{{' . $key . '}}', $value, $output);
             }
         }
 

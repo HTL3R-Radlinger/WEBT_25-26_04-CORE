@@ -14,10 +14,10 @@ $data = [
 
 foreach ($mealPlans as $plan) {
     $data['plans'][] = (object)[
-        'plan_name' => $plan->getName(),
-        'school_name' => $plan->getSchoolName(),
-        'week_of_delivery' => $plan->getWeekOfDelivery(),
-        'plan_meals' => $plan->getMeals()
+        'plan_name' => $plan->name,
+        'school_name' => $plan->schoolName,
+        'week_of_delivery' => $plan->weekOfDelivery,
+        'plan_meals' => $plan->meals
     ];
 };
 
