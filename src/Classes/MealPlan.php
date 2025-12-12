@@ -19,7 +19,7 @@ class MealPlan
     )
     {
         $this->id = $id;
-        $this->name = $name;
+        $this->planName = $name;
         $this->schoolName = $schoolName;
         $this->weekOfDelivery = $weekOfDelivery;
         $this->meals = $meals;
