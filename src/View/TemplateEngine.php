@@ -81,16 +81,8 @@ class TemplateEngine
                         $replacement .= $renderedItemBlock;
                     }
                 }
-                continue;
-            }
 
-            if ($token['type'] === 'text') {
-                if (empty($stack)) {
-                    $output .= $token['value'];
-                } else {
-                    $stack[count($stack) - 1]['inner'] .= $token['value'];
-                }
-                continue;
+                $output = str_replace($fullMatch, $replacement, $output);
             }
         }
 
@@ -99,18 +91,8 @@ class TemplateEngine
             if (!is_array($value)) {
                 $output = str_replace('{{' . $key . '}}', $value, $output);
             }
-
-            $tokens[] = ['type' => 'text', 'value' => $part];
         }
 
-        return $tokens;
-    }
-
-    private static function replaceVars(string $content, array $data): string
-    {
-        return preg_replace_callback('/{{\s*(\w+)\s*}}/', function ($matches) use ($data) {
-            $key = $matches[1];
-            return $data[$key] ?? '';
-        }, $content);
+        return $output;
     }
 }
