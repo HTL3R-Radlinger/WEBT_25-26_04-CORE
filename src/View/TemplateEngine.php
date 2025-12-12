@@ -10,16 +10,16 @@ class TemplateEngine
         fclose($handle);
 
         // Handle loops
-        if (preg_match_all('/\{% for (\w+) in (\w+) %\}(.*?)\{% endfor %\}/s', $output, $matches, PREG_SET_ORDER)) {
+        if (preg_match_all('/\{% for (\w+) in (\w+) %}(.*?)\{% endfor %}/s', $output, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 [$fullMatch, $itemVar, $arrayVar, $loopContent] = $match;
-
+//                echo $loopContent;
                 $replacement = '';
                 if (isset($data[$arrayVar]) && is_array($data[$arrayVar])) {
                     foreach ($data[$arrayVar] as $item) {
                         $loopItem = $loopContent;
                         foreach (get_object_vars($item) as $key => $value) {
-                            $loopItem = str_replace('{{' . $key . '}}', $value, $loopItem);
+                            if (gettype($value) == 'string') $loopItem = str_replace('{{' . $key . '}}', $value, $loopItem);
                         }
                         $replacement .= $loopItem;
                     }
@@ -28,6 +28,9 @@ class TemplateEngine
                 $output = str_replace($fullMatch, $replacement, $output);
             }
         }
+
+        // Handle Sub Loops
+
 
         // Replace simple variables
         foreach ($data as $key => $value) {
