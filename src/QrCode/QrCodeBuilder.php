@@ -14,19 +14,19 @@ use Endroid\QrCode\Writer\Result\ResultInterface;
 
 class QrCodeBuilder
 {
-    public static function qrCodeBuilder(): ?ResultInterface
+    public static function generate(string $data, string $lable, int $size = 300, int $margin = 10): ?ResultInterface
     {
         $builder = new Builder(
             writer: new PngWriter(),
             writerOptions: [],
             validateResult: false,
-            data: 'Custom QR code contents',
+            data: $data,
             encoding: new Encoding('UTF-8'),
             errorCorrectionLevel: ErrorCorrectionLevel::High,
-            size: 300,
-            margin: 10,
+            size: $size,
+            margin: $margin,
             roundBlockSizeMode: RoundBlockSizeMode::Margin,
-            labelText: 'This is the label',
+            labelText: $lable,
             labelFont: new OpenSans(20),
             labelAlignment: LabelAlignment::Center
         );

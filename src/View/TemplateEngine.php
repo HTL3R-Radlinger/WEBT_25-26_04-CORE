@@ -6,7 +6,9 @@ class TemplateEngine
 {
     public static function render(string $templatePath, array $data): string
     {
-        $output = file_get_contents($templatePath);
+        $handle = fopen($templatePath, 'r');
+        $output = fread($handle, filesize($templatePath));
+        fclose($handle);
 
         // MAIN LOOPS
         if (preg_match_all('/\{% for (\w+) in (\w+) %}(.*?)\{% endfor %}/s', $output, $matches, PREG_SET_ORDER)) {
