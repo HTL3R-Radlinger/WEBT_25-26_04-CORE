@@ -5,6 +5,6 @@ services:
       dockerfile: dockerfile
     ports:
       - "8080:80"
-    container_name: CORE4
+    container_name: ADV3
     volumes:
       - .:/var/www/html
