@@ -20,6 +20,4 @@ header("Content-Type: application/json");
  */
 if (isset($_GET["mealID"])) {
     echo GetMeals::getMealWithId((int)$_GET["mealID"]);
-} else {
-    echo json_encode(["error" => "No meal ID provided!"]);
-}
+} else echo json_encode(["error" => "No meal ID provided!"]);

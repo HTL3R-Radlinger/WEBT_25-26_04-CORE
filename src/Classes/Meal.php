@@ -16,7 +16,8 @@ class Meal
         string $allergens,
         string $nutritionalInfo,
         float  $price,
-    ) {
+    )
+    {
         $this->id = $id;
         $this->name = $name;
         $this->allergens = $allergens;
