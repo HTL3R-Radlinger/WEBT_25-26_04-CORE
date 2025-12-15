@@ -7,13 +7,14 @@ WEBT-VT | ADV | 03 - Coding Standards
 * File -> Settings -> PHP
 * Auf `...` neben **CLI Interpreter** klicken
 * `+` -> **From Docker** -> **Docker Composer**
+
 - **Server:** Docker
 - **Configuration file:** `./WEBT_25-26_03-ADV/docker-compose.yaml`
 - **Service:** `web`
-- **PHP executable:** `/usr/local/bin/php`
+- **PHP executable:** `php`
 
-**Lifecycle:** Connect to existing container ('docker-compose exec')
-**CLI Interpreter:** `web`
+* **Lifecycle:** Connect to existing container ('docker-compose exec')
+* **CLI Interpreter:** `web`
 
 ### PHP CS Fixer in PhpStorm konfigurieren
 
@@ -24,26 +25,32 @@ WEBT-VT | ADV | 03 - Coding Standards
 * **Path mappings:** Map ADV3 Folder to `/var/www/html`
 
 ### Reformat specific File with PhpStorm
+
 `Ctrl + Shift + A -> "Fix CS"`
 
 ### Reformat at File save
+
 * File -> Settings -> PHP -> Quality Tools -> **External Formatters:** `PHP CS Fixer`
 * `Settings -> Tools -> Action on Save`
+
 - Select `Reformat code` & `Rearrange code`
 
 ### PHP Coding Standards
 
 #### Standard
-- PSR-12
+
+* PSR-12
 
 #### Tooling
-- PHP CS Fixer
-- Configuration: .php-cs-fixer.php
+
+* PHP CS Fixer
+* Configuration: .php-cs-fixer.php
 
 #### Rules
-- 4-space indentation
-- One class per file
-- Strict type declarations
+
+* 4-space indentation
+* One class per file
+* Strict type declarations
 
 ## Composer Infos
 
