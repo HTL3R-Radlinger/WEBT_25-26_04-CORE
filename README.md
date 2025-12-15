@@ -34,7 +34,7 @@ The goal of the project is to demonstrate:
 │   ├── qrCodeExample.php       # Simple QR code demo script
 │   └── styles/
 │       └── style.css           # Global styling for the project
-├── src/                        # PHP source code (business logic)
+├── src/
 │   ├── Api/
 │   │   └── GetMeals.php        # Returns a meal as JSON
 │   ├── QrCode/
@@ -128,7 +128,7 @@ Users can enter a meal ID and generate a QR code dynamically via a styled form.
 
 ### `public/form.php`
 
-* Handles GET and POST requests
+* Handles POST requests
 * Validates user input (meal ID)
 * Generates QR codes dynamically
 * Renders output via `form.html`
